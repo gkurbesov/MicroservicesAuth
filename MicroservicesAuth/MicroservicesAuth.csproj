@@ -4,11 +4,25 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Version>0.0.1</Version>
     <Authors>Gennady Kurbesov</Authors>
-    <Company>Gennady KurbesovGennady Kurbesov</Company>
+    <Company>Gennady Kurbesov</Company>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/gkurbesov/MicroservicesAuth</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/gkurbesov/MicroservicesAuth</RepositoryUrl>
+    <PackageTags>Microservices, Authentication, Authorization</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Product>Microservices Authenticator</Product>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
