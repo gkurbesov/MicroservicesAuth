@@ -23,24 +23,31 @@ namespace MicroservicesAuth
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            // Заголовок с данными для аутентификации не найден
             if (!Request.Headers.ContainsKey(AccessTokenAuthenticationDefaults.AuthorizationHeader))
                 return AuthenticateResult.Fail("Missing Authorization Header");
 
+            // получаем значение заголовка
             var authHeader = AuthenticationHeaderValue.Parse(Request.Headers[AccessTokenAuthenticationDefaults.AuthorizationHeader]);
 
+            // проверяем префикс токена (схема аутентификации, по умолчанию Bearer)
             if (!authHeader.Scheme.Equals(Options.AuthorizationScheme, StringComparison.InvariantCultureIgnoreCase))
                 return AuthenticateResult.Fail("Invalid authorization scheme");
 
+            // проверяем наличие токена
             if (string.IsNullOrWhiteSpace(authHeader.Parameter))
                 return AuthenticateResult.Fail("Authorization token is empty");
 
-            var ticket = ticketStorage.GetTicket(authHeader.Parameter);
+            // запрашиваем AuthenticationTicket (билет аутентификации из хранилища)
+            var ticket = await ticketStorage.GetTicketAsync(authHeader.Parameter);
 
             if (ticket != null)
             {
+                // если есть тикет то проверяем не истек ли срок жизни
                 if (ticket.Properties.ExpiresUtc.HasValue && ticket.Properties.ExpiresUtc.Value < Clock.UtcNow)
                 {
-                    ticketStorage.RemoveTicket(authHeader.Parameter);
+                    // время тикета истекло - удаляем
+                    await ticketStorage.RemoveTicketAsync(authHeader.Parameter);
                     return AuthenticateResult.Fail("Token is expired");
                 }
                 else
@@ -50,6 +57,7 @@ namespace MicroservicesAuth
             }
             else
             {
+                // билет отсутствует (истекло время токена или не был предварительно авторизован)
                 return AuthenticateResult.Fail("Failed to match token");
             }
         }
