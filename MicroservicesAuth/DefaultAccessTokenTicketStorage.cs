@@ -11,32 +11,34 @@ namespace MicroservicesAuth
     public class DefaultAccessTokenTicketStorage : IAccessTokenTicketStorage
     {
         private readonly ConcurrentDictionary<string, AuthenticationTicket> _cache;
-        public IReadOnlyDictionary<string, AuthenticationTicket> Tickets => _cache;
 
         public DefaultAccessTokenTicketStorage()
         {
             _cache = new ConcurrentDictionary<string, AuthenticationTicket>();
         }
 
-        public bool Contains(string accessToken) => _cache.ContainsKey(accessToken);
-
-        public AuthenticationTicket GetTicket(string accessToken)
+        public Task<AuthenticationTicket> GetTicketAsync(string accessToken)
         {
             if (!string.IsNullOrWhiteSpace(accessToken) && _cache.TryGetValue(accessToken, out var ticket))
-                return ticket;
+                return Task.FromResult(ticket);
             else
-                return null;
+                return Task.FromResult<AuthenticationTicket>(null);
         }
 
-        public void SetTicket(string accessToken, AuthenticationTicket ticket)
+        public Task SetTicketAsync(string accessToken, AuthenticationTicket ticket)
         {
             _cache.TryAdd(accessToken, ticket);
+            return Task.CompletedTask;
         }
 
-        public void RemoveTicket(string accessToken)
+        public Task RemoveTicketAsync(string accessToken)
         {
             if (!string.IsNullOrWhiteSpace(accessToken))
                 _cache.TryRemove(accessToken, out var ticket);
+            return Task.CompletedTask;
         }
+
+        public Task<IReadOnlyDictionary<string, AuthenticationTicket>> GetTicketsAllAsync() =>
+            Task.FromResult<IReadOnlyDictionary<string, AuthenticationTicket>>(_cache);
     }
 }
