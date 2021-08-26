@@ -8,6 +8,7 @@ namespace MicroservicesAuth
     public class AccessTokenAuthenticationOptions : Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions
     {
         public string AuthorizationScheme { get; set; }
+        public IAccessTokenTicketProvider TicketProvider { get; set; }
 
         public AccessTokenAuthenticationOptions() : base()
         {

@@ -13,13 +13,8 @@ namespace MicroservicesAuth
 {
     public class AccessTokenAuthenticationHandler : AuthenticationHandler<AccessTokenAuthenticationOptions>
     {
-        private readonly IAccessTokenTicketStorage ticketStorage;
-
-        public AccessTokenAuthenticationHandler(IOptionsMonitor<AccessTokenAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IAccessTokenTicketStorage ticketStorage)
-            : base(options, logger, encoder, clock)
-        {
-            this.ticketStorage = ticketStorage;
-        }
+        public AccessTokenAuthenticationHandler(IOptionsMonitor<AccessTokenAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
+            : base(options, logger, encoder, clock) { }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
@@ -34,26 +29,23 @@ namespace MicroservicesAuth
             if (!authHeader.Scheme.Equals(Options.AuthorizationScheme, StringComparison.InvariantCultureIgnoreCase))
                 return AuthenticateResult.Fail("Invalid authorization scheme");
 
+            var token = authHeader.Parameter.Substring(Options.AuthorizationScheme.Length).Trim();
+
             // проверяем наличие токена
-            if (string.IsNullOrWhiteSpace(authHeader.Parameter))
+            if (string.IsNullOrWhiteSpace(token))
                 return AuthenticateResult.Fail("Authorization token is empty");
 
             // запрашиваем AuthenticationTicket (билет аутентификации из хранилища)
-            var ticket = await ticketStorage.GetTicketAsync(authHeader.Parameter);
+            var ticket = await Options.TicketProvider.GetTicketAsync(token);
 
             if (ticket != null)
             {
                 // если есть тикет то проверяем не истек ли срок жизни
                 if (ticket.Properties.ExpiresUtc.HasValue && ticket.Properties.ExpiresUtc.Value < Clock.UtcNow)
-                {
-                    // время тикета истекло - удаляем
-                    await ticketStorage.RemoveTicketAsync(authHeader.Parameter);
+                    // время тикета истекло
                     return AuthenticateResult.Fail("Token is expired");
-                }
                 else
-                {
                     return AuthenticateResult.Success(ticket);
-                }
             }
             else
             {
