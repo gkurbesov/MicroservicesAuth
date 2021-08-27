@@ -29,7 +29,7 @@ namespace MicroservicesAuth
             if (!authHeader.Scheme.Equals(Options.AuthorizationScheme, StringComparison.InvariantCultureIgnoreCase))
                 return AuthenticateResult.Fail("Invalid authorization scheme");
 
-            var token = authHeader.Parameter.Substring(Options.AuthorizationScheme.Length).Trim();
+            var token = authHeader.Parameter;
 
             // проверяем наличие токена
             if (string.IsNullOrWhiteSpace(token))
